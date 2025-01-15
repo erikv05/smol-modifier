@@ -1,0 +1,1 @@
+("8.15" tarm64osx ("526634aa05ac67cb14e0f3ca8b7e623b9314c790" . "6269642257cd4d35b4ace8749788b1ec99860033") (collects #"plait" #"main.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt") (collects #"smol-misinterpreters" #"smol-syntax.rkt") (indirect collects #"racket" #"match" #"gen-match.rkt") (indirect collects #"racket" #"match" #"parse.rkt"))

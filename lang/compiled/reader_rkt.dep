@@ -1,0 +1,1 @@
+("8.15" tarm64osx ("650fc1aff7c088522c6dcba500890c9e727cb6b8" . "46479d29a35e2f34a602b8bc03e2059da3ff023f") (collects #"racket" #"runtime-config.rkt") (collects #"s-exp" #"lang" #"reader.rkt") (collects #"syntax" #"module-reader.rkt"))
