@@ -242,30 +242,32 @@
      (let ([_ ((env-update! env) f (function xs b env))])
        (void))]))
 
-(define (eval-body env xvs b)
-  (local [(define vs (map snd xvs))
-          (define xs
-            (append (map fst xvs)
-                    (declared-identifiers (fst b))))
-          (define new-env (env-declare env xs))]
-    (begin
-      ; bind arguments
-      (for ([xv xvs])
-        ((env-update! new-env) (fst xv) (snd xv)))
-      ; evaluate starting terms
-      (for ([t (fst b)])
-        ((eval-term new-env) t))
-      ; evaluate and return the result
-      ((eval-exp new-env) (snd b)))))
+(define (eval-body [env : Environment]
+           [xvs : (Listof (Pairof Identifier Value))]
+           [b : Body])
+  : Value
+  (local [(define vs : (Listof Value) (map snd xvs))
+      (define xs : (Listof Identifier)
+      (append (map fst xvs)
+          (declared-identifiers (fst b))))
+      (define new-env : Environment (env-declare env xs))]
+  (begin
+    (for ([xv xvs])
+    ((env-update! new-env) (fst xv) (snd xv)))
+    (for ([t (fst b)])
+    ((eval-term new-env) t))
+    ((eval-exp new-env) (snd b)))))
 
-(define (eval-exp env)
+(define (eval-exp [env : Environment])
+  : (Expression -> Value)
   (lambda (e)
     (type-case Expression e
       [(ECon c) (embedded c)]
       [(Var x) (env-lookup env x)]
       [(Lambda xs b) (function xs b env)]
       [(Let xes b)
-       (local [(define (ev-bind xv)
+       (local [(define (ev-bind [xv : (Pairof Identifier Expression)])
+                 : (Pairof Identifier Value)
                  (let ([v ((eval-exp env) (snd xv))])
                    (pair (fst xv) v)))]
          (let ([xvs (map ev-bind xes)])
@@ -284,7 +286,8 @@
          (let ([l (as-boolean v_cnd)])
            (if l v_thn v_els)))]
       [(Cond ebs ob)
-       (local [(define (loop ebs)
+       (local [(define (loop [ebs : (Listof (Pairof Expression Body))])
+                 : Value
                  (type-case (Listof (Pairof Expression Body)) ebs
                    [empty
                     (type-case (Optionof Body) ob
@@ -294,13 +297,12 @@
                    [(cons eb ebs)
                     (let ([v ((eval-exp env) (fst eb))])
                       (let ([l (as-boolean v)])
-                          (if l
-                              (let ([result (eval-body env (list) (snd eb))])
-                                (begin
-                                  (try (loop ebs) (lambda () (void)))
-                                  result))
-                              (let ([_ (eval-body env (list) (snd eb))]) (loop ebs))
-                              )))]))]
+                        (if l
+                            (let ([result (eval-body env (list) (snd eb))])
+                              (begin
+                                (try (loop ebs) (lambda () (unit)))
+                                result))
+                            (let ([_ (eval-body env (list) (snd eb))]) (loop ebs)))))]))]
          (loop ebs))]
       [(App e es)
        (let ([v ((eval-exp env) e)])
