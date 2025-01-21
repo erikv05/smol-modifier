@@ -299,8 +299,7 @@
                       (let ([l (as-boolean v)])
                         (if l
                             (let ([result (eval-body env (list) (snd eb))])
-                              (begin
-                                (try (loop ebs) (lambda () (unit)))
+                              (let ([_ (try (loop ebs) (lambda () (unit)))])
                                 result))
                             (let ([_ (eval-body env (list) (snd eb))]) (loop ebs)))))]))]
          (loop ebs))]
