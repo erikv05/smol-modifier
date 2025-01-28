@@ -8,34 +8,37 @@
 ;; or number are replaced by the same new generated instance.
 
 (define identifiers-mapping
-  (hash (list)))  ; from s-exp -> s-exp
+  (hash (list)))  ; from Identifier -> Identifier
 
 (define numbers-mapping
   (hash (list)))  ; from Number -> Number
 
 ;; Randomly generates new identifiers (for now, random numbers)
+;; and stores in identifiers-mapping
 ;; In the future, we can randomly match adjectives to nouns, etc.
-(define (random-identifier old)
+(define (random-identifier [old : Identifier]) : Identifier
   (let ([existing (hash-ref identifiers-mapping old)])
-    (if (none? existing)
-        existing
-        (let* ([new-name
-                (string->symbol
-                 (string-append "r_"
-                                (s-exp->string (number->s-exp (random 0 1000000)))))]
-               [new-id new-name])
-          (begin
-            (hash-set! identifiers-mapping old new-id)
-            new-id)))))
+    (type-case (Optionof Identifier) existing
+      [(some identifier) identifier]
+      [(none)
+       (let* ([new-id
+           (string->symbol
+          (string-append "r_"
+                   (s-exp->string (number->s-exp (random 0 1000000)))))])
+       (begin
+         (hash-set! identifiers-mapping old new-id)
+         new-id))])))
 
 ;; Randomly generates new numbers from old numbers
-;; TODO: Does NOT preserve any arithmetic properties
+;; TODO: preserve division-by-zero cases by checking
+;; if second argument is a 0
 
-; (define (random-number old)
-;   (let ([existing (hash-ref numbers-mapping old)])
-;     (if existing
-;         existing
-;         (let* ([new-num (random 0 1000000)])
-;           (begin
-;             (hash-set! numbers-mapping old new-num)
-;             new-num)))))
+(define (random-number [old : Number]) : Number
+  (let ([existing (hash-ref numbers-mapping old)])
+    (type-case (Optionof Number) existing
+      [(some number) number]
+      [(none)
+       (let* ([new-num (random 0 1000000)])
+       (begin
+         (hash-set! numbers-mapping old new-num)
+         new-num))])))
