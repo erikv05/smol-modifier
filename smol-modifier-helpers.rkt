@@ -3,10 +3,13 @@
 (require "smol-syntax.rkt")
 (require [typed-in racket [random : (Number Number -> Number)]])
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Randomize identifiers + numbers (helper)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; We'll keep two tables for mapping identifiers and numbers to new
 ;; identifiers and numbers, s.t. all instances of the old identifier
 ;; or number are replaced by the same new generated instance.
-
 (define identifiers-mapping
   (hash (list)))  ; from Identifier -> Identifier
 
@@ -32,7 +35,6 @@
 ;; Randomly generates new numbers from old numbers
 ;; TODO: preserve division-by-zero cases by checking
 ;; if second argument is a 0
-
 (define (random-number [old : Number]) : Number
   (let ([existing (hash-ref numbers-mapping old)])
     (type-case (Optionof Number) existing
@@ -42,3 +44,17 @@
        (begin
          (hash-set! numbers-mapping old new-num)
          new-num))])))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Randomize constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(define (randomize-constant [c : Constant]) : Constant
+  (type-case Constant c
+    [(numeric n)
+     (numeric (random-number n))]       ; “scramble” the number
+    [(logical b)
+      ;; Don't scramble booleans for now
+     (logical b)]
+    [(textual s)
+     ;; TODO: randomize strings in a sound way
+     (textual (string-append "rnd_" s))]))
