@@ -127,3 +127,9 @@
      (definitive (randomize-def d))]
     [(expressive e)
      (expressive (randomize-exp e))]))
+
+;; -----------------------------------------
+;; Randomize a Program
+;; -----------------------------------------
+(define (randomize-program [p : Program]) : Program
+  (map randomize-term p))
