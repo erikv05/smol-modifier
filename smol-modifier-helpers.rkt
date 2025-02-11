@@ -1,6 +1,7 @@
 #lang plait
 
 (require "smol-syntax.rkt")
+(require [typed-in racket [number->string : (Number -> String)]])
 (require [typed-in racket [random : (Number Number -> Number)]])
 
 ;; -----------------------------------------
@@ -11,10 +12,10 @@
 ;; identifiers and numbers, s.t. all instances of the old identifier
 ;; or number are replaced by the same new generated instance.
 (define identifiers-mapping
-  (hash (list)))  ; from Identifier -> Identifier
+  (make-hash (list)))  ; from Identifier -> Identifier
 
 (define numbers-mapping
-  (hash (list)))  ; from Number -> Number
+  (make-hash (list)))  ; from Number -> Number
 
 ;; Randomly generates new identifiers (for now, random numbers)
 ;; and stores in identifiers-mapping
@@ -27,7 +28,7 @@
        (let* ([new-id
            (string->symbol
           (string-append "r_"
-                   (s-exp->string (number->s-exp (random 0 1000000)))))])
+                   (number->string (random 0 100))))])
        (begin
          (hash-set! identifiers-mapping old new-id)
          new-id))])))
@@ -40,7 +41,7 @@
     (type-case (Optionof Number) existing
       [(some number) number]
       [(none)
-       (let* ([new-num (random 0 1000000)])
+       (let* ([new-num (random 0 100)])
        (begin
          (hash-set! numbers-mapping old new-num)
          new-num))])))
@@ -48,7 +49,6 @@
 ;; -----------------------------------------
 ;; Randomize constants
 ;; -----------------------------------------
-
 (define (randomize-constant [c : Constant]) : Constant
   (type-case Constant c
     [(numeric n)
