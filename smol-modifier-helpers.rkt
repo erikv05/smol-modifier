@@ -3,6 +3,7 @@
 (require "smol-syntax.rkt")
 (require [typed-in racket [number->string : (Number -> String)]])
 (require [typed-in racket [random : (Number Number -> Number)]])
+(require [typed-in racket [display : (Identifier -> Void)]])
 
 ;; -----------------------------------------
 ;; Randomize identifiers + numbers (helper)
@@ -21,30 +22,35 @@
 ;; and stores in identifiers-mapping
 ;; In the future, we can randomly match adjectives to nouns, etc.
 (define (random-identifier [old : Identifier]) : Identifier
-  (let ([existing (hash-ref identifiers-mapping old)])
-    (type-case (Optionof Identifier) existing
-      [(some identifier) identifier]
-      [(none)
-       (let* ([new-id
-           (string->symbol
-          (string-append "r_"
-                   (number->string (random 0 100))))])
-       (begin
-         (hash-set! identifiers-mapping old new-id)
-         new-id))])))
+  (if (member old (list '+ '/ '- '* 'eq? '> '>= '< '<= 'not 'and 'or 'if 'begin 'set! 'let 'lambda 'cond
+  'else 'case))
+      old
+      (let ([existing (hash-ref identifiers-mapping old)])
+        (type-case (Optionof Identifier) existing
+          [(some identifier) identifier]
+          [(none)
+           (let* ([new-id
+                   (string->symbol
+                    (string-append "r_"
+                                   (number->string (random 0 100))))])
+             (begin
+               (hash-set! identifiers-mapping old new-id)
+               new-id))]))))
 
 ;; Randomly generates new numbers from old numbers
 ;; TODO: preserve division-by-zero cases by checking
 ;; if second argument is a 0
 (define (random-number [old : Number]) : Number
-  (let ([existing (hash-ref numbers-mapping old)])
-    (type-case (Optionof Number) existing
-      [(some number) number]
-      [(none)
-       (let* ([new-num (random 0 100)])
-       (begin
-         (hash-set! numbers-mapping old new-num)
-         new-num))])))
+  (if (= old 0)
+      old
+      (let ([existing (hash-ref numbers-mapping old)])
+        (type-case (Optionof Number) existing
+          [(some number) number]
+          [(none)
+           (let* ([new-num (random 0 100)])
+             (begin
+               (hash-set! numbers-mapping old new-num)
+               new-num))]))))
 
 ;; -----------------------------------------
 ;; Randomize constants
@@ -97,7 +103,9 @@
         [(none) (none)]
         [(some b) (some (randomize-body b))]))]
     [(App e-f es)
-     (App (randomize-exp e-f) (map randomize-exp es))]))
+      (if (member f (list 'eq?)
+        (App f es)
+        (App f (map randomize-exp es))))]))
 
 
 
