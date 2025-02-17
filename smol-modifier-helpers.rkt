@@ -3,7 +3,7 @@
 (require "smol-syntax.rkt")
 (require [typed-in racket [number->string : (Number -> String)]])
 (require [typed-in racket [random : (Number Number -> Number)]])
-(require [typed-in racket [display : (Identifier -> Void)]])
+(require [typed-in racket [display : ('a -> Void)]])
 
 ;; -----------------------------------------
 ;; Randomize identifiers + numbers (helper)
@@ -103,9 +103,9 @@
         [(none) (none)]
         [(some b) (some (randomize-body b))]))]
     [(App e-f es)
-      (if (member f (list 'eq?)
-        (App f es)
-        (App f (map randomize-exp es))))]))
+      (if (member e-f (list 'eq?))
+        (App e-f es)
+        (App e-f (map randomize-exp es)))]))
 
 
 

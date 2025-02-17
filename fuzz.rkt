@@ -10,7 +10,7 @@
   (list-ref xs (random 0 (length xs))))
 
 (define (make-Identifier!)
-  (choose '(x y z a b c d e f g h i j k l m n o p q r s t u v w mpair set-left! set-right!)))
+  (choose '(x y z mpair set-left! set-right!)))
 
 (define (make-Constant!)
   (define z (choose '(logical numeric textual)))
@@ -18,9 +18,9 @@
     [(equal? z 'logical)
      (logical (choose '(#t #f)))]
     [(equal? z 'numeric)
-     (numeric (choose '(0 1 2 3 4 5 6 7 8 9)))]
+     (numeric (choose '(0 1 2)))]
     [(equal? z 'textual)
-     (textual (choose '("JRK" "JBT" "ABC" "DEF" "GHI" "JKL" "MNO" "PQR" "STU" "VWX" "YZ")))]
+     (textual (choose '("JRK" "JBT" "ABC")))]
      ))
 
 (define (make-Term!)
@@ -29,47 +29,26 @@
     [(equal? z 'expressive)
      (expressive (make-Expression!))]
     [(equal? z 'definitive)
-     (definitive (make-Definition!))]
-     ))
+     (definitive (make-Definition!))]))
 
 (define (make-Expression! [n 0])
-  (define z
-    (if (= n 0)
-        (choose '(ECon Var Set! App))
-        (choose '(ECon Var Lambda Let Begin Set! If Cond App Case))))
+  (define z (choose '(ECon Var App Set!)))
   (cond
     [(equal? z 'ECon)
      (ECon (make-Constant!))]
     [(equal? z 'Var)
      (Var (make-Identifier!))]
-    [(equal? z 'Lambda)
-     (Lambda (make-Listof! make-Identifier!) (make-Body!))]
-    [(equal? z 'Let)
-     (Let (make-Listof! (lambda () (pair (make-Identifier!) (make-Expression!)))) (make-Body!))]
-    [(equal? z 'Begin)
-     (Begin (make-Listof! make-Expression!) (make-Expression!))]
-    [(equal? z 'Set!)
-     (Set! (make-Identifier!) (make-Expression!))]
-    [(equal? z 'If)
-     (If (make-Expression!) (make-Expression!) (make-Expression!))]
-    [(equal? z 'Cond)
-     (Cond (make-Listof! (lambda () (pair (make-Expression!) (make-Body!)))) (none))]
     [(equal? z 'App)
      (App (make-Expression!) (make-Listof! make-Expression!))]
-     ))
+    [(equal? z 'Set!)
+     (Set! (make-Identifier!) (make-Expression!))]))
 
 (define (make-Definition!)
-  (define z (choose '(defvar deffun)))
-  (cond
-    [(equal? z 'defvar)
-     (Defvar (make-Identifier!) (make-Expression!))]
-    [(equal? z 'deffun)
-     (Deffun (make-Identifier!) (make-Listof! make-Identifier!) (make-Body!))]
-     ))
+  (Defvar (make-Identifier!) (make-Expression!)))
 
 (define (make-Listof! t!)
   (define t (t!))
-  (if (choose '(#t #t #t #f)) (list t)
+  (if (choose '(#t #f)) (list t)
       (cons t (make-Listof! t!))))
 
 (define (make-Program!) (make-Listof! make-Term!))
@@ -180,7 +159,6 @@
   (if (empty? hits) (try!)
       (begin
         (newline)
-        (writeln (program->string program))
         (writeln wanted-result)
         (writeln hits)))
   )
