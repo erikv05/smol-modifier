@@ -103,9 +103,7 @@
         [(none) (none)]
         [(some b) (some (randomize-body b))]))]
     [(App e-f es)
-      (if (member e-f (list 'eq?))
-        (App e-f es)
-        (App e-f (map randomize-exp es)))]))
+        (App (randomize-exp e-f) (map randomize-exp es))]))
 
 
 

@@ -18,9 +18,9 @@
     [(equal? z 'logical)
      (logical (choose '(#t #f)))]
     [(equal? z 'numeric)
-     (numeric (choose '(0 1 2)))]
+     (numeric (choose '(0 1)))]
     [(equal? z 'textual)
-     (textual (choose '("JRK" "JBT" "ABC")))]
+     (textual (choose '("JRK" "JBT")))]
      ))
 
 (define (make-Term!)
@@ -36,7 +36,7 @@
   (define z
     (if (= n 0)
         (choose '(ECon Var Set! App))
-        (choose '(ECon Var Lambda Let Begin Set! If Cond App Case))))
+        (choose '(ECon Var Lambda Let Begin Set! If Cond App))))
   (cond
     [(equal? z 'ECon)
      (ECon (make-Constant!))]
@@ -104,40 +104,6 @@
 (define (program->string p)
   (map term->string p))
 
-  (define example-program
-    (list
-     (expressive (App (Var '+) (list (ECon (numeric 2)) (ECon (numeric 3)))))
-     (expressive (App (Var '+) (list (ECon (numeric 3)) (ECon (numeric 4)))))))
-
-
-
-(define (try-example!)
-  (define wanted-result (program->result-string evaluate/smol example-program))
-  (define results
-    (for/list ([nm-and-eval mises])
-      (match-define (cons nm ev) nm-and-eval)
-      (cons nm (program->result-string ev example-program))))
-  
-  ; Print wanted-result and results
-  (printf "Wanted result: ~a~n" wanted-result)
-  (for ([result results])
-    (printf "~a: ~a~n" (car result) (cdr result)))
-  
-  (define hits
-    (filter
-     (lambda (x)
-       (not (equal? (cdr x) wanted-result)))
-     results))
-  (if (empty? hits)
-      (begin
-        (newline)
-        (displayln "No differences found."))
-      (begin
-        (newline)
-        (writeln (program->string example-program))
-        (writeln wanted-result)
-        (writeln hits))))
-
 
 (require racket/sandbox)
 (require csv-reading)
@@ -158,12 +124,17 @@
 (require (rename-in (only-in "smol-def-or-set.rkt" [evaluate evaluate/def-or-set])))
 
 (define (program->result-string ev program)
-    (define result
-        (with-output-to-string
-            (lambda ()
-                (with-handlers ([exn:fail? (lambda (e) (display "error"))])
-                    (display (ev program))))))
-    result)
+  (define s
+    (with-output-to-string
+      (thunk
+       (with-handlers ([(lambda (_) #t) (lambda (_) (displayln "error"))])
+         (with-limits 1 10
+           (ev program))))))
+  (let* ([s (if (string-suffix? s "\n")
+                (substring s 0 (sub1 (string-length s)))
+                s)]
+         [s (string-replace s "\n" " ")])
+    s))
 
 (define mises
   (list
@@ -191,6 +162,7 @@
 (define (try!)
   (display ".") (flush-output)
   (define program (make-Program!))
+  ;(define program (list (expressive (Var 'z))))
   (define wanted-result (program->result-string evaluate/smol program))
   (define results
     (for/list ([nm-and-eval mises])
@@ -201,14 +173,9 @@
     (filter
       (lambda (x)
         (and
+          ;(member (car x) '("DefOrSet" "FunNotVal" "NestedDef" "CallByRef" "DefByRef" "StructByRef"))
           (not (equal? (cdr x) wanted-result)))) results))
-  (if (empty? hits)
-      (begin
-        (newline)
-        (writeln (program->string program))
-        (writeln wanted-result)
-        (writeln results)
-        (try!))
+  (if (empty? hits) (try!)
       (begin
         (newline)
         (writeln (program->string program))
